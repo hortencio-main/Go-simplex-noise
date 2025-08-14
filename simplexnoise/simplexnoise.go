@@ -62,7 +62,7 @@ func FASTFLOOR(x float64) int {
  * A vector-valued noise over 3D accesses it 96 times, and a
  * float-valued 4D noise 64 times. We want this to fit in the cache!
  */
-var perm = [512]uint8{
+var Perm = [512]uint8{
 	151, 160, 137, 91, 90, 15,
 	131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23,
 	190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33,
@@ -145,14 +145,14 @@ func Noise1(x float64) float64 {
 
 	t0 := 1 - x0*x0
 	t0 *= t0
-	n0 := t0 * t0 * grad1(perm[i0&0xff], x0)
+	n0 := t0 * t0 * grad1(Perm[i0&0xff], x0)
 
 	t1 := 1 - x1*x1
 	t1 *= t1
-	n1 := t1 * t1 * grad1(perm[i1&0xff], x1)
+	n1 := t1 * t1 * grad1(Perm[i1&0xff], x1)
 	// The maximum value of this noise is 8*(3/4)^4 = 2.53125
 	// A factor of 0.395 would scale to fit exactly within [-1,1].
-	// fmt.Printf("Noise1 x %.4f, i0 %v, i1 %v, x0 %.4f, x1 %.4f, perm0 %d, perm1 %d: %.4f,%.4f\n", x, i0, i1, x0, x1, perm[i0&0xff], perm[i1&0xff], n0, n1)
+	// fmt.Printf("Noise1 x %.4f, i0 %v, i1 %v, x0 %.4f, x1 %.4f, Perm0 %d, Perm1 %d: %.4f,%.4f\n", x, i0, i1, x0, x1, Perm[i0&0xff], Perm[i1&0xff], n0, n1)
 	// The algorithm isn't perfect, as it is assymetric. The correction will normalize the result to the interval [-1,1], but the average will be off by 3%.
 	return (n0 + n1 + 0.076368899) / 2.45488110001
 }
@@ -198,7 +198,7 @@ func Noise2(x, y float64) float64 {
 	x2 := x0 - 1 + 2*G2 // Offsets for last corner in (x,y) unskewed coords
 	y2 := y0 - 1 + 2*G2
 
-	// Wrap the integer indices at 256, to avoid indexing perm[] out of bounds
+	// Wrap the integer indices at 256, to avoid indexing Perm[] out of bounds
 	ii := i & 0xff
 	jj := j & 0xff
 
@@ -208,7 +208,7 @@ func Noise2(x, y float64) float64 {
 		n0 = 0
 	} else {
 		t0 *= t0
-		n0 = t0 * t0 * grad2(perm[ii+int(perm[jj])], x0, y0)
+		n0 = t0 * t0 * grad2(Perm[ii+int(Perm[jj])], x0, y0)
 	}
 
 	t1 := 0.5 - x1*x1 - y1*y1
@@ -216,7 +216,7 @@ func Noise2(x, y float64) float64 {
 		n1 = 0
 	} else {
 		t1 *= t1
-		n1 = t1 * t1 * grad2(perm[ii+i1+int(perm[jj+j1])], x1, y1)
+		n1 = t1 * t1 * grad2(Perm[ii+i1+int(Perm[jj+j1])], x1, y1)
 	}
 
 	t2 := 0.5 - x2*x2 - y2*y2
@@ -224,7 +224,7 @@ func Noise2(x, y float64) float64 {
 		n2 = 0
 	} else {
 		t2 *= t2
-		n2 = t2 * t2 * grad2(perm[ii+1+int(perm[jj+1])], x2, y2)
+		n2 = t2 * t2 * grad2(Perm[ii+1+int(Perm[jj+1])], x2, y2)
 	}
 
 	// Add contributions from each corner to get the final noise value.
@@ -327,7 +327,7 @@ func Noise3(x, y, z float64) float64 {
 	y3 := y0 - 1 + 3*G3
 	z3 := z0 - 1 + 3*G3
 
-	// Wrap the integer indices at 256, to avoid indexing perm[] out of bounds
+	// Wrap the integer indices at 256, to avoid indexing Perm[] out of bounds
 	ii := i & 0xff
 	jj := j & 0xff
 	kk := k & 0xff
@@ -338,7 +338,7 @@ func Noise3(x, y, z float64) float64 {
 		n0 = 0
 	} else {
 		t0 *= t0
-		n0 = t0 * t0 * grad3(perm[ii+int(perm[jj+int(perm[kk])])], x0, y0, z0)
+		n0 = t0 * t0 * grad3(Perm[ii+int(Perm[jj+int(Perm[kk])])], x0, y0, z0)
 	}
 
 	t1 := 0.6 - x1*x1 - y1*y1 - z1*z1
@@ -346,7 +346,7 @@ func Noise3(x, y, z float64) float64 {
 		n1 = 0
 	} else {
 		t1 *= t1
-		n1 = t1 * t1 * grad3(perm[ii+i1+int(perm[jj+j1+int(perm[kk+k1])])], x1, y1, z1)
+		n1 = t1 * t1 * grad3(Perm[ii+i1+int(Perm[jj+j1+int(Perm[kk+k1])])], x1, y1, z1)
 	}
 
 	t2 := 0.6 - x2*x2 - y2*y2 - z2*z2
@@ -354,7 +354,7 @@ func Noise3(x, y, z float64) float64 {
 		n2 = 0
 	} else {
 		t2 *= t2
-		n2 = t2 * t2 * grad3(perm[ii+i2+int(perm[jj+j2+int(perm[kk+k2])])], x2, y2, z2)
+		n2 = t2 * t2 * grad3(Perm[ii+i2+int(Perm[jj+j2+int(Perm[kk+k2])])], x2, y2, z2)
 	}
 
 	t3 := 0.6 - x3*x3 - y3*y3 - z3*z3
@@ -362,7 +362,7 @@ func Noise3(x, y, z float64) float64 {
 		n3 = 0
 	} else {
 		t3 *= t3
-		n3 = t3 * t3 * grad3(perm[ii+1+int(perm[jj+1+int(perm[kk+1])])], x3, y3, z3)
+		n3 = t3 * t3 * grad3(Perm[ii+1+int(Perm[jj+1+int(Perm[kk+1])])], x3, y3, z3)
 	}
 
 	// Add contributions from each corner to get the final noise value.
